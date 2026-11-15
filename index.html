@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="de">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#101316">
+    <meta name="description" content="Lokaler Pull-Tracker für Zenless Zone Zero">
+    <title>ZZZ // Pull-Tracker</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+<main class="app-shell">
+    <header class="topbar">
+        <div class="brand-mark" aria-hidden="true">Z</div>
+        <div class="brand-copy">
+            <p class="eyebrow">PERSONAL SIGNAL LOG <span>///</span> NEW ERIDU</p>
+            <h1>Pull-Tracker</h1>
+        </div>
+        <div class="local-badge"><span></span> LOKAL GESPEICHERT</div>
+    </header>
+
+    <section class="entry-panel panel" aria-labelledby="entryTitle">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">TÄGLICHES UPDATE <span>01</span></p>
+                <h2 id="entryTitle">Signal-Bestand</h2>
+            </div>
+            <p class="date-stamp" id="todayLabel"></p>
+        </div>
+
+        <form class="pullForm" novalidate>
+            <label class="input-field">
+                <span>Master Tapes <small>1 Tape = 1 Pull</small></span>
+                <input type="number" class="tapeInput" min="0" step="1" inputmode="numeric" placeholder="0">
+            </label>
+            <label class="input-field">
+                <span>Residual Signals <small>20 = 1 Pull</small></span>
+                <input type="number" class="residualInput" min="0" step="1" inputmode="numeric" placeholder="0">
+            </label>
+            <label class="input-field">
+                <span>Polychromes <small>160 = 1 Pull</small></span>
+                <input type="number" class="polychromeInput" min="0" step="1" inputmode="numeric" placeholder="0">
+            </label>
+            <label class="input-field">
+                <span>Monochromes <small>160 = 1 Pull</small></span>
+                <input type="number" class="monochromeInput" min="0" step="1" inputmode="numeric" placeholder="0">
+            </label>
+            <div class="form-footer">
+                <p>Leere Felder übernehmen den letzten gespeicherten Stand.</p>
+                <button class="primary-button" type="submit">Eintrag speichern <span aria-hidden="true">↗</span></button>
+            </div>
+        </form>
+
+        <div class="preview-strip" aria-live="polite">
+            <div class="preview-title">
+                <span class="pulse-dot"></span>
+                <span>LIVE-VORSCHAU</span>
+            </div>
+            <div class="preview-values">
+                <span><b id="previewTapes">0</b> Tape-Pulls</span>
+                <span><b id="previewResidual">0</b> Residual-Pulls</span>
+                <span><b id="previewPoly">0</b> Poly-Pulls</span>
+                <span><b id="previewMono">0</b> Mono-Pulls</span>
+                <strong><b id="previewTotal">0</b> Gesamt</strong>
+            </div>
+        </div>
+        <p class="status-message" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="stats-section" aria-labelledby="statsTitle">
+        <div class="section-heading compact-heading">
+            <div>
+                <p class="eyebrow">ÜBERBLICK <span>02</span></p>
+                <h2 id="statsTitle">All-Time-Stats</h2>
+            </div>
+        </div>
+        <div class="stats-grid">
+            <article class="stat-card">
+                <span class="stat-label">POLYCHROMES AUSGEGEBEN</span>
+                <strong id="statPolychromes">0</strong>
+                <span class="stat-unit">POLY</span>
+            </article>
+            <article class="stat-card">
+                <span class="stat-label">MONOCHROMES AUSGEGEBEN</span>
+                <strong id="statMonochromes">0</strong>
+                <span class="stat-unit">MONO</span>
+            </article>
+            <article class="stat-card">
+                <span class="stat-label">GEZOGENE TAPES</span>
+                <strong id="statTapes">0</strong>
+                <span class="stat-unit">PULLS</span>
+            </article>
+            <article class="stat-card stat-card-accent">
+                <span class="stat-label">Ø PULLS PRO TAG</span>
+                <strong id="statAverage">0</strong>
+                <span class="stat-unit">PULLS / EINTRAG</span>
+            </article>
+        </div>
+    </section>
+
+    <section class="charts-section" aria-label="Pull-Statistiken">
+        <article class="chart-card panel">
+            <div class="section-heading chart-heading">
+                <div>
+                    <p class="eyebrow">VERLAUF <span>03</span></p>
+                    <h2>Pull-Aktivität</h2>
+                </div>
+                <div class="time-range-selector" aria-label="Zeitraum auswählen">
+                    <button type="button" class="time-btn" data-range="1T">1T</button>
+                    <button type="button" class="time-btn" data-range="1W">1W</button>
+                    <button type="button" class="time-btn" data-range="1M">1M</button>
+                    <button type="button" class="time-btn" data-range="3M">3M</button>
+                    <button type="button" class="time-btn" data-range="6M">6M</button>
+                    <button type="button" class="time-btn" data-range="YTD">YTD</button>
+                    <button type="button" class="time-btn" data-range="1Y">1J</button>
+                    <button type="button" class="time-btn active" data-range="MAX">MAX</button>
+                </div>
+            </div>
+            <div class="pullGraph">
+                <canvas id="pullChart" aria-label="Pull-Verlauf pro Tag"></canvas>
+                <p class="empty-chart">Noch keine gespeicherten Pull-Daten.</p>
+            </div>
+            <div class="chart-legend">
+                <span><i class="legend-dot total-dot"></i>Pulls gesamt / Tag</span>
+                <span><i class="legend-dot tape-dot"></i>Tapes + Polychromes / Tag</span>
+            </div>
+        </article>
+
+        <article class="chart-card panel source-card">
+            <div class="section-heading chart-heading">
+                <div>
+                    <p class="eyebrow">QUELLEN <span>04</span></p>
+                    <h2>Pull-Mix</h2>
+                </div>
+            </div>
+            <p class="source-caption" id="sourceCaption">Letzter gespeicherter Eintrag</p>
+            <div class="sourceGraph">
+                <canvas id="sourceChart" aria-label="Pull-Anteile nach Quelle"></canvas>
+                <div class="source-center"><strong id="sourceTotal">0</strong><span>PULLS</span></div>
+                <p class="empty-source">Noch keine Daten.</p>
+            </div>
+            <div class="source-legend">
+                <span><i class="legend-dot tape-dot"></i>Tapes</span>
+                <span><i class="legend-dot residual-dot"></i>Residual Signals</span>
+                <span><i class="legend-dot poly-dot"></i>Polychromes</span>
+                <span><i class="legend-dot mono-dot"></i>Monochromes</span>
+            </div>
+        </article>
+    </section>
+
+    <section class="backup-panel panel" aria-labelledby="backupTitle">
+        <div>
+            <p class="eyebrow">DATENSICHERUNG <span>05</span></p>
+            <h2 id="backupTitle">Deine Historie, dein Backup.</h2>
+            <p>Exportiere deine Daten als JSON oder stelle einen vorhandenen Spielstand wieder her.</p>
+        </div>
+        <div class="file-actions">
+            <button type="button" id="exportBtn" class="secondary-button">JSON exportieren <span aria-hidden="true">↓</span></button>
+            <input type="file" id="importFile" accept=".json,application/json" hidden>
+            <button type="button" id="importBtn" class="secondary-button">Backup importieren <span aria-hidden="true">↑</span></button>
+        </div>
+    </section>
+
+    <footer>ZENLESS ZONE ZERO // PULL-TRACKER <span>— Deine Daten bleiben auf diesem Gerät.</span></footer>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

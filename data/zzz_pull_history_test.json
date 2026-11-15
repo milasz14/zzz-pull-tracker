@@ -1,0 +1,86 @@
+[
+    {
+        "date": "2026-11-11",
+        "tapes": 10,
+        "residual": 1260,
+        "polychrome": 17423,
+        "monochrome": 15530,
+        "tapePulls": 10,
+        "residualPulls": 63,
+        "polychromePulls": 108.89375,
+        "monochromePulls": 97.0625,
+        "totalPulls": 316.95625
+    },
+    {
+        "date": "2026-11-12",
+        "tapes": 31,
+        "residual": 1260,
+        "polychrome": 17423,
+        "monochrome": 15530,
+        "tapePulls": 31,
+        "residualPulls": 63,
+        "polychromePulls": 108.89375,
+        "monochromePulls": 97.0625,
+        "totalPulls": 316.95625
+    },
+    {
+        "date": "2026-11-13",
+        "tapes": 31,
+        "residual": 1260,
+        "polychrome": 17423,
+        "monochrome": 15530,
+        "tapePulls": 31,
+        "residualPulls": 63,
+        "polychromePulls": 108.89375,
+        "monochromePulls": 97.0625,
+        "totalPulls": 316.95625
+    },
+    {
+        "date": "2026-11-14",
+        "tapes": 53,
+        "residual": 1260,
+        "polychrome": 17423,
+        "monochrome": 15530,
+        "tapePulls": 53,
+        "residualPulls": 63,
+        "polychromePulls": 108.89375,
+        "monochromePulls": 97.0625,
+        "totalPulls": 316.95625
+    },
+    {
+        "date": "2026-11-15",
+        "tapes": 41,
+        "residual": 1260,
+        "polychrome": 17423,
+        "monochrome": 15530,
+        "tapePulls": 41,
+        "residualPulls": 63,
+        "polychromePulls": 108.89375,
+        "monochromePulls": 97.0625,
+        "totalPulls": 316.95625
+    },
+    {
+        "date": "2026-11-16",
+        "tapes": 41,
+        "residual": 1260,
+        "polychrome": 17423,
+        "monochrome": 15530,
+        "tapePulls": 41,
+        "residualPulls": 63,
+        "polychromePulls": 108.89375,
+        "monochromePulls": 97.0625,
+        "totalPulls": 316.95625
+    },
+    {
+        "date": "2026-11-17",
+        "tapes": 48,
+        "residual": 1260,
+        "polychrome": 17423,
+        "monochrome": 15530,
+        "tapePulls": 48,
+        "residualPulls": 63,
+        "polychromePulls": 108.89375,
+        "monochromePulls": 97.0625,
+        "totalPulls": 316.95625
+    }
+]
