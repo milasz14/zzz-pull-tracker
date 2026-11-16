@@ -1,6 +1,20 @@
 # Include your project-specific ignores in this file
 # Read about how to use .gitignore: https://help.github.com/articles/ignoring-files
 # Useful .gitignore templates: https://github.com/github/gitignore
+# IDE
+.idea/
+*.iml
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Operating system
+.DS_Store
+Thumbs.db
+
+# Build
 node_modules
 dist
 .cache
