@@ -1,4 +1,20 @@
 const STORAGE_KEY = 'zzz_pull_history';
+
+// Firebase-Konfiguration (aus der Firebase Console kopiert)
+const firebaseConfig = {
+    apiKey: "AIzaSyAkieB078lnnL5EeGpgcqzj1mD70vOyr8w",
+    authDomain: "zzz-pull-tracker.firebaseapp.com",
+    projectId: "zzz-pull-tracker",
+    storageBucket: "zzz-pull-tracker.firebasestorage.app",
+    messagingSenderId: "124470911475",
+    appId: "1:124470911475:web:1d63f15731ca36de103286"
+};
+
+// Firebase initialisieren
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
+
 const SOURCE_COLORS = ['#f3d54e', '#f28a55', '#69a8ff', '#f16c9a'];
 const fields = {
     tapes: document.querySelector('.tapeInput'),
@@ -10,6 +26,89 @@ const fields = {
 let pullChart = null;
 let sourceChart = null;
 let currentRange = 'MAX';
+let currentUserUid = null;
+
+// Automatisch beim Start einloggen (mit den Daten aus der Firebase Console)
+// Alternativ kannst du hier deine E-Mail und dein Passwort eintragen:
+function ensureAuth() {
+    return new Promise((resolve, reject) => {
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUserUid = user.uid;
+                resolve(user);
+            } else {
+                // automatisch einloggen, wenn kein Benutzer angemeldet ist
+                auth.signInWithEmailAndPassword("yumilasz14@gmail.com", "Fi01Mi14")
+                    .then(userCredential => {
+                        currentUserUid = userCredential.user.uid;
+                        resolve(userCredential.user);
+                    })
+                    .catch(error => {
+                        reject(new Error("Firebase Login fehlgeschlagen: " + error.message));
+                    });
+            }
+        });
+    });
+}
+
+// Daten aus Firestore laden
+async function loadHistory() {
+    await ensureAuth();
+    const snapshot = await db.collection('users').doc(currentUserUid).collection('pulls').get();
+    const history = [];
+    snapshot.forEach(doc => {
+        history.push(doc.data());
+    });
+    return sortHistory(history);
+}
+
+// Daten in Firestore speichern (jeder Tag ist ein Dokument mit der Datum als ID)
+async function saveHistory(history) {
+    await ensureAuth();
+    const batch = db.batch();
+    const userPullsRef = db.collection('users').doc(currentUserUid).collection('pulls');
+
+    // Alle Einträge durchgehen und speichern
+    for (const entry of history) {
+        const docRef = userPullsRef.doc(entry.date);
+        batch.set(docRef, entry);
+    }
+
+    await batch.commit();
+}
+
+
+function sortHistory(history) {
+    return [...history].sort((a, b) => a.date.localeCompare(b.date));
+}
+
+/*
+function loadHistory() {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) return [];
+
+    let history;
+    try {
+        history = JSON.parse(stored);
+    } catch (error) {
+        throw new Error('Die gespeicherte Historie ist beschädigt und konnte nicht gelesen werden.');
+    }
+
+    if (!Array.isArray(history)) {
+        throw new Error('Die gespeicherte Historie hat ein ungültiges Format.');
+    }
+    return sortHistory(history);
+}
+
+function saveHistory(history) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(sortHistory(history)));
+}
+*/
+
+function getLatestEntry(history) {
+    return sortHistory(history).at(-1) || null;
+}
+
 
 function getDate() {
     const date = new Date();
@@ -46,35 +145,6 @@ function calculateTotalPulls(inputs) {
         monochromePulls,
         totalPulls: tapePulls + residualPulls + polychromePulls + monochromePulls
     };
-}
-
-function sortHistory(history) {
-    return [...history].sort((a, b) => a.date.localeCompare(b.date));
-}
-
-function loadHistory() {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (!stored) return [];
-
-    let history;
-    try {
-        history = JSON.parse(stored);
-    } catch (error) {
-        throw new Error('Die gespeicherte Historie ist beschädigt und konnte nicht gelesen werden.');
-    }
-
-    if (!Array.isArray(history)) {
-        throw new Error('Die gespeicherte Historie hat ein ungültiges Format.');
-    }
-    return sortHistory(history);
-}
-
-function saveHistory(history) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(sortHistory(history)));
-}
-
-function getLatestEntry(history) {
-    return sortHistory(history).at(-1) || null;
 }
 
 function getEntryInputs(entry) {
@@ -359,10 +429,10 @@ function showStatus(message, isError = false) {
     status.classList.toggle('error', isError);
 }
 
-function handleSaveEntry(event) {
+async function handleSaveEntry(event) {
     event.preventDefault();
     try {
-        const history = loadHistory();
+        const history = await loadHistory();
         const values = readFormValues(history);
         validateInput(values);
 
@@ -372,7 +442,7 @@ function handleSaveEntry(event) {
         };
         const updatedHistory = history.filter(entry => entry.date !== todayEntry.date);
         updatedHistory.push(todayEntry);
-        saveHistory(updatedHistory);
+        await saveHistory(updatedHistory);
         updateDashboard(sortHistory(updatedHistory));
         showStatus('Eintrag für heute wurde gespeichert.');
     } catch (error) {
@@ -480,11 +550,11 @@ function syncTodayInputs(history) {
     updatePreview(history);
 }
 
-function initApp() {
+async function initApp() {
     document.querySelector('#todayLabel').textContent = formatDate(getDate());
 
     try {
-        const history = loadHistory();
+        const history = await loadHistory();
         syncTodayInputs(history);
         updateDashboard(history);
     } catch (error) {
@@ -496,7 +566,8 @@ function initApp() {
     Object.values(fields).forEach(field => {
         field.addEventListener('input', () => {
             try {
-                updatePreview(loadHistory());
+                // Da loadHistory asynchron ist, holen wir den lokalen Stand für die Live-Vorschau
+                loadHistory().then(history => updatePreview(history)).catch(() => {});
             } catch (error) {
                 showStatus(error.message, true);
             }
@@ -509,11 +580,12 @@ function initApp() {
     });
     document.querySelector('#importFile').addEventListener('change', importHistoryFromFile);
     document.querySelectorAll('.time-btn').forEach(button => {
-        button.addEventListener('click', () => {
+        button.addEventListener('click', async () => {
             document.querySelectorAll('.time-btn').forEach(item => item.classList.remove('active'));
             button.classList.add('active');
             currentRange = button.dataset.range;
-            renderLineChart(loadHistory());
+            const history = await loadHistory();
+            renderLineChart(history);
         });
     });
 }
