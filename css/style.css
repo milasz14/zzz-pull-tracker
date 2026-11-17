@@ -27,6 +27,37 @@ body {
     font-family: 'DM Sans', Arial, sans-serif;
 }
 
+/* Login-Fenster */
+#loginSection {
+    width: min(420px, calc(100% - 32px));
+    margin: 80px auto;
+    padding: 28px 28px 0;
+}
+
+#loginForm.login-form {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-top: 22px;
+}
+
+.login-footer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    margin-top: 8px;
+    grid-column: 1 / -1;
+}
+
+.login-btn {
+    width: 100%;
+    justify-content: center;
+}
+
+#loginError {
+    text-align: center;
+    min-height: 1.2em;
+}
+
 button,
 input {
     font: inherit;
@@ -93,7 +124,7 @@ h2,
     font-size: 9px;
 }
 
-.local-badge {
+.cloud-badge {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -106,7 +137,7 @@ h2,
     letter-spacing: 0.09em;
 }
 
-.local-badge span,
+.cloud-badge span,
 .pulse-dot {
     width: 7px;
     height: 7px;
@@ -647,12 +678,12 @@ footer span {
         width: calc(100% - 20px);
     }
 
-    .local-badge {
+    .cloud-badge {
         padding: 8px;
         font-size: 0;
     }
 
-    .local-badge span {
+    .cloud-badge span {
         width: 8px;
         height: 8px;
     }

@@ -28,24 +28,22 @@ let sourceChart = null;
 let currentRange = 'MAX';
 let currentUserUid = null;
 
-// Automatisch beim Start einloggen (mit den Daten aus der Firebase Console)
-// Alternativ kannst du hier deine E-Mail und dein Passwort eintragen:
+// Prüfen, ob der Nutzer eingeloggt ist. Wenn nicht, Login-Formular anzeigen.
 function ensureAuth() {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         auth.onAuthStateChanged(user => {
+            const loginSection = document.querySelector('#loginSection');
+            const appShell = document.querySelector('#appShell');
+
             if (user) {
                 currentUserUid = user.uid;
+                if (loginSection) loginSection.style.display = 'none'; // Login-Box verstecken
+                if (appShell) appShell.style.display = 'block'; // App anzeigen
                 resolve(user);
             } else {
-                // automatisch einloggen, wenn kein Benutzer angemeldet ist
-                auth.signInWithEmailAndPassword("yumilasz14@gmail.com", "Fi01Mi14")
-                    .then(userCredential => {
-                        currentUserUid = userCredential.user.uid;
-                        resolve(userCredential.user);
-                    })
-                    .catch(error => {
-                        reject(new Error("Firebase Login fehlgeschlagen: " + error.message));
-                    });
+                currentUserUid = null;
+                if (loginSection) loginSection.style.display = 'block'; // Login-Box anzeigen
+                if (appShell) appShell.style.display = 'none'; // App verstecken
             }
         });
     });
@@ -62,7 +60,7 @@ async function loadHistory() {
     return sortHistory(history);
 }
 
-// Daten in Firestore speichern (jeder Tag ist ein Dokument mit der Datum als ID)
+// Daten in Firestore speichern (jeder Tag ist ein Dokument mit dem Datum als ID)
 async function saveHistory(history) {
     await ensureAuth();
     const batch = db.batch();
@@ -81,29 +79,6 @@ async function saveHistory(history) {
 function sortHistory(history) {
     return [...history].sort((a, b) => a.date.localeCompare(b.date));
 }
-
-/*
-function loadHistory() {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (!stored) return [];
-
-    let history;
-    try {
-        history = JSON.parse(stored);
-    } catch (error) {
-        throw new Error('Die gespeicherte Historie ist beschädigt und konnte nicht gelesen werden.');
-    }
-
-    if (!Array.isArray(history)) {
-        throw new Error('Die gespeicherte Historie hat ein ungültiges Format.');
-    }
-    return sortHistory(history);
-}
-
-function saveHistory(history) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(sortHistory(history)));
-}
-*/
 
 function getLatestEntry(history) {
     return sortHistory(history).at(-1) || null;
@@ -591,3 +566,24 @@ async function initApp() {
 }
 
 window.addEventListener('DOMContentLoaded', initApp);
+
+// Event-Listener für das Login-Formular
+document.addEventListener('DOMContentLoaded', () => {
+    const loginForm = document.querySelector('#loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.querySelector('#loginEmail').value;
+            const password = document.querySelector('#loginPassword').value;
+            const errorElement = document.querySelector('#loginError');
+
+            try {
+                errorElement.textContent = '';
+                await auth.signInWithEmailAndPassword(email, password);
+                // Sobald der Login erfolgreich ist, triggert onAuthStateChanged den Rest automatisch
+            } catch (error) {
+                errorElement.textContent = 'Login fehlgeschlagen: E-Mail oder Passwort falsch.';
+            }
+        });
+    }
+});

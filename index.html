@@ -11,14 +11,40 @@
 </head>
 
 <body>
-<main class="app-shell">
+<!-- Login-Fenster -->
+<section class="panel" id="loginSection">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">SICHERHEIT <span>AUTH</span></p>
+            <h2 id="loginTitle">Anmeldung erforderlich</h2>
+        </div>
+    </div>
+    <form id="loginForm" class="pullForm login-form">
+        <label class="input-field">
+            <span>E-Mail-Adresse</span>
+            <input type="email" id="loginEmail" placeholder="deine@email.de" required>
+        </label>
+        <label class="input-field">
+            <span>Passwort</span>
+            <input type="password" id="loginPassword" placeholder="Dein Passwort" required>
+        </label>
+        <div class="form-footer login-footer">
+            <button class="primary-button login-btn" type="submit">
+                Einloggen <span aria-hidden="true">→</span>
+            </button>
+            <p id="loginError" class="status-message error"></p>
+        </div>
+    </form>
+</section>
+<!-- Anwendung wird standardmäßig ausgeblendet -->
+<main class="app-shell" id="appShell" style="display: none;">
     <header class="topbar">
         <div class="brand-mark" aria-hidden="true">Z</div>
         <div class="brand-copy">
             <p class="eyebrow">PERSONAL SIGNAL LOG <span>///</span> NEW ERIDU</p>
             <h1>Pull-Tracker</h1>
         </div>
-        <div class="local-badge"><span></span> LOKAL GESPEICHERT</div>
+        <div class="cloud-badge"><span></span> CLOUD SYNC AKTIV</div>
     </header>
 
     <section class="entry-panel panel" aria-labelledby="entryTitle">
