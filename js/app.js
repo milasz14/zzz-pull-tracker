@@ -1,5 +1,3 @@
-const STORAGE_KEY = 'zzz_pull_history';
-
 // Firebase-Konfiguration (aus der Firebase Console kopiert)
 const firebaseConfig = {
     apiKey: "AIzaSyAkieB078lnnL5EeGpgcqzj1mD70vOyr8w",
@@ -9,7 +7,7 @@ const firebaseConfig = {
     messagingSenderId: "124470911475",
     appId: "1:124470911475:web:1d63f15731ca36de103286"
 };
- 
+
 // Firebase initialisieren
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
@@ -30,6 +28,10 @@ let currentUserUid = null;
 
 // Prüfen, ob der Nutzer eingeloggt ist. Wenn nicht, Login-Formular anzeigen.
 function ensureAuth() {
+    if (auth.currentUser) {
+        currentUserUid = auth.currentUser.uid;
+        return Promise.resolve(auth.currentUser);
+    }
     return new Promise((resolve) => {
         auth.onAuthStateChanged(user => {
             const loginSection = document.querySelector('#loginSection');
@@ -75,6 +77,20 @@ async function saveHistory(history) {
     await batch.commit();
 }
 
+async function clearHistory() {
+    await ensureAuth();
+    const userPullsRef = db.collection('users').doc(currentUserUid).collection('pulls');
+    const snapshot = await userPullsRef.get();
+
+    if (snapshot.empty) return;
+
+    const batch = db.batch();
+    snapshot.forEach(doc => {
+        batch.delete(doc.ref);
+    });
+
+    await batch.commit();
+}
 
 function sortHistory(history) {
     return [...history].sort((a, b) => a.date.localeCompare(b.date));
@@ -463,9 +479,9 @@ function validateImportedHistory(data) {
     }));
 }
 
-function exportHistoryToFile() {
+async function exportHistoryToFile() {
     try {
-        const history = loadHistory();
+        const history = await loadHistory();
         if (history.length === 0) {
             showStatus('Es gibt noch keine Daten zum Exportieren.', true);
             return;
@@ -475,7 +491,7 @@ function exportHistoryToFile() {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `zzz_pull_history_${getDate()}.json`;
+        link.download = `zzz_ph_${getDate()}.json`;
         document.body.appendChild(link);
         link.click();
         link.remove();
@@ -492,15 +508,16 @@ function importHistoryFromFile(event) {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = () => {
+    reader.onload = async () => {
         try {
             const importedHistory = validateImportedHistory(JSON.parse(reader.result));
-            const currentHistory = loadHistory();
+            const currentHistory = await loadHistory();
             if (currentHistory.length && !window.confirm('Das Backup ersetzt deine aktuelle Historie. Fortfahren?')) {
                 showStatus('Import abgebrochen; deine aktuelle Historie bleibt unverändert.');
                 return;
             }
-            saveHistory(importedHistory);
+            await clearHistory();
+            await saveHistory(importedHistory);
             updateDashboard(importedHistory);
             syncTodayInputs(importedHistory);
             showStatus(`${importedHistory.length} Einträge erfolgreich importiert.`);
@@ -528,21 +545,12 @@ function syncTodayInputs(history) {
 async function initApp() {
     document.querySelector('#todayLabel').textContent = formatDate(getDate());
 
-    try {
-        const history = await loadHistory();
-        syncTodayInputs(history);
-        updateDashboard(history);
-    } catch (error) {
-        showStatus(error.message, true);
-        updateDashboard([]);
-    }
-
     document.querySelector('.pullForm').addEventListener('submit', handleSaveEntry);
     Object.values(fields).forEach(field => {
-        field.addEventListener('input', () => {
+        field.addEventListener('input', async () => {
             try {
-                // Da loadHistory asynchron ist, holen wir den lokalen Stand für die Live-Vorschau
-                loadHistory().then(history => updatePreview(history)).catch(() => {});
+                const history = await loadHistory();
+                updatePreview(history);
             } catch (error) {
                 showStatus(error.message, true);
             }
@@ -563,6 +571,15 @@ async function initApp() {
             renderLineChart(history);
         });
     });
+
+    try {
+        const history = await loadHistory();
+        syncTodayInputs(history);
+        updateDashboard(history);
+    } catch (error) {
+        showStatus(error.message, true);
+        updateDashboard([]);
+    }
 }
 
 window.addEventListener('DOMContentLoaded', initApp);
